@@ -9,6 +9,8 @@ import {
 } from '@line/bot-sdk';
 import express, { Application, Request, Response } from 'express';
 import { load } from 'ts-dotenv';
+import { getTrashSchedule } from './trashSchedule';
+
 const env = load({
   CHANNEL_ACCESS_TOKEN: String,
   CHANNEL_SECRET: String,
@@ -23,17 +25,43 @@ const config = {
 };
 const clientConfig: ClientConfig = config;
 const middlewareConfig: MiddlewareConfig = config;
-const client = new Client(clientConfig); //①
+const client = new Client(clientConfig); 
 
-const app: Application = express(); //②
+const app: Application = express();
 
-app.get('/', async (_: Request, res: Response): Promise<Response> => { //③
+app.get('/', async (_: Request, res: Response): Promise<Response> => { 
   return res.status(200).send({
     message: 'success',
   });
 });
 
-const textEventHandler = async ( //④
+//明日の日付を取得する関数
+const getTomorrowDay = (): number => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.getDay();
+};
+
+//ユーザーからのメッセージに対して返信を生成する関数
+const generateResponse = (message: string): string => {
+  if (message !== '明日のゴミの種類は何ですか？') {
+    return '明日のゴミの種類はなんですか？と聞いてください。';
+  }
+
+  const schedule = getTrashSchedule();
+  const tomorrowDay = getTomorrowDay();
+  const trashTypes = Object.keys(schedule).filter((type) =>
+    schedule[type].includes(tomorrowDay)
+  );
+
+  if (trashTypes.length === 0) {
+    return '明日はゴミの収集はありません。';
+  }
+
+  return `明日のゴミの種類は以下の通りです: ${trashTypes.join(', ')}`;
+};
+
+const textEventHandler = async (
   event: WebhookEvent
 ): Promise<MessageAPIResponseBase | undefined> => {
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -42,14 +70,15 @@ const textEventHandler = async ( //④
 
   const { replyToken } = event;
   const { text } = event.message;
+  const responseText = generateResponse(text);
   const response: TextMessage = {
     type: 'text',
-    text: text,
+    text: responseText,
   };
   await client.replyMessage(replyToken, response);
 };
 
-app.post( //⑤
+app.post( 
   '/webhook',
   middleware(middlewareConfig),
   async (req: Request, res: Response): Promise<Response> => {
@@ -70,6 +99,6 @@ app.post( //⑤
   }
 );
 
-app.listen(PORT, () => { //⑥
+app.listen(PORT, () => { 
   console.log(`http://localhost:${PORT}/`);
 });

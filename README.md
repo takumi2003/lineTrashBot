@@ -1,5 +1,5 @@
 ***trashLineBot***
-ゴミを出す種類を教えてくれるlineBot作成中・・・  
+ゴミを出す種類を教えてくれるlineBot
 
 <img width="203" alt="スクリーンショット 2024-04-10 15 49 09" src="https://github.com/takumi2003/lineTrashBot/assets/123874279/b29c8bd1-1040-46e8-8ea6-a880501b75b8">  
 

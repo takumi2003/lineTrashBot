@@ -1,4 +1,4 @@
-***trashLineBot***
+***trashLineBot***  
 
 ゴミを出す種類を教えてくれるlineBot  
 京都の一部地区のみ対応
